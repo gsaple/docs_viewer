@@ -1,5 +1,5 @@
 import { type FC } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Progress from "./Progress";
 import Message from "./Message";
 import { niceBytes, mimeTypeToString } from "../utils/file";
@@ -39,6 +39,13 @@ const FileUpload: FC = () => {
     "application/vnd.ms-excel": "xls",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
   };
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", deleteFiles);
+    return () => {
+      window.removeEventListener("beforeunload", deleteFiles);
+    };
+  }, []);
 
   const uploadOneFile = async (file: File) => {
     const formData = new FormData();
@@ -84,7 +91,7 @@ const FileUpload: FC = () => {
     }
   };
 
-  const deleteFiles = async () => {
+  async function deleteFiles() {
     const fileNames = filePaths.join(",");
     try {
       const response = await axiosInstance.delete(
@@ -98,7 +105,7 @@ const FileUpload: FC = () => {
     } catch (error) {
       console.error("Error deleting files:", (error as Error).message);
     }
-  };
+  }
 
   const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;

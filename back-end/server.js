@@ -41,16 +41,16 @@ app.post("/upload", (req, res) => {
     });
   }
 
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
   if (exceedDirSizeLimit()) {
     return res.status(507).json({
       success: false,
       error:
         "Not enough cloud storage for uploading all files, current limit is 50 MiB.",
     });
-  }
-
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
   }
 
   const file = req.files.file;
@@ -73,6 +73,13 @@ app.post("/upload", (req, res) => {
 app.delete("/delete", (req, res) => {
   const filePaths = req.query.fileNames.split(",");
   try {
+    if (filePaths[0].length === 0) {
+      fs.rmSync(`${__dirname}/upload`, { recursive: true });
+      return res.status(200).json({
+        success: true,
+        message: "Upload folder deleted successfully.",
+      });
+    }
     filePaths.forEach((filePath) => {
       fs.unlinkSync(`${__dirname}/${filePath}`);
     });
