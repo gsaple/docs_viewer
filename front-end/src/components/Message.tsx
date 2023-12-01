@@ -4,14 +4,12 @@ import React from "react";
 interface MessageProps {
   msg: string;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
+  type: string;
 }
 
-const Message: FC<MessageProps> = ({ msg, setMessage }) => {
+const Message: FC<MessageProps> = ({ msg, setMessage, type }) => {
   return (
-    <div
-      className="alert alert-warning alert-dismissible fade show"
-      role="alert"
-    >
+    <div className={`alert alert-${type} alert-dismissible fade show`}>
       {msg}
       <button
         type="button"
