@@ -45,7 +45,7 @@ const FileUpload: FC = () => {
     return () => {
       window.removeEventListener("beforeunload", deleteFiles);
     };
-  }, []);
+  }, [filePaths]);
 
   const uploadOneFile = async (file: File) => {
     const formData = new FormData();

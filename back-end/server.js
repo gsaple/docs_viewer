@@ -21,15 +21,14 @@ app.use((err, req, res, next) => {
     .json({ success: false, error: "Unknown Server Error" });
 });
 
-const uploadDir = path.join(__dirname, "upload");
-const exceedDirSizeLimit = () => {
+const exceedDirSizeLimit = (fileIncoming, dirToCheck) => {
   const uploadDirLimit = 50 * 1024 * 1024; // 50 Mb
-  const files = fs.readdirSync(uploadDir);
+  const files = fs.readdirSync(dirToCheck);
   const totalSize = files.reduce((acc, file) => {
-    const filePath = path.join(uploadDir, file);
+    const filePath = path.join(dirToCheck, file);
     const stats = fs.statSync(filePath);
     return acc + stats.size;
-  }, 0);
+  }, fileIncoming.size);
   return totalSize > uploadDirLimit;
 };
 
@@ -41,11 +40,15 @@ app.post("/upload", (req, res) => {
     });
   }
 
+  const uploadDir = path.join(__dirname, "upload");
+
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
 
-  if (exceedDirSizeLimit()) {
+  const file = req.files.file;
+
+  if (exceedDirSizeLimit(file, uploadDir)) {
     return res.status(507).json({
       success: false,
       error:
@@ -53,7 +56,6 @@ app.post("/upload", (req, res) => {
     });
   }
 
-  const file = req.files.file;
   const fileName = uuidv4() + path.extname(file.name);
 
   file.mv(`${uploadDir}/${fileName}`, (err) => {
@@ -73,13 +75,6 @@ app.post("/upload", (req, res) => {
 app.delete("/delete", (req, res) => {
   const filePaths = req.query.fileNames.split(",");
   try {
-    if (filePaths[0].length === 0) {
-      fs.rmSync(`${__dirname}/upload`, { recursive: true });
-      return res.status(200).json({
-        success: true,
-        message: "Upload folder deleted successfully.",
-      });
-    }
     filePaths.forEach((filePath) => {
       fs.unlinkSync(`${__dirname}/${filePath}`);
     });
