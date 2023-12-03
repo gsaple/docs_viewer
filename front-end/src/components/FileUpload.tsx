@@ -15,7 +15,8 @@ const FileUpload: FC = () => {
   const [uploadPercentage, setUploadPercentage] = useState<{
     [key: string]: number;
   }>({});
-  const [filePaths, setFilePaths] = useState<string[]>([]);
+  const [remoteFilePaths, setRemoteFilePaths] = useState<string[]>([]);
+  const [uploadedFileNames, setUploadedFileNames] = useState<string[]>([]);
   const supportedFileType: { [key: string]: string } = {
     "image/bmp": "bmp",
     "text/csv": "csv",
@@ -45,7 +46,7 @@ const FileUpload: FC = () => {
     return () => {
       window.removeEventListener("beforeunload", deleteFiles);
     };
-  }, [filePaths]);
+  }, [remoteFilePaths]);
 
   const uploadOneFile = async (file: File) => {
     const formData = new FormData();
@@ -59,11 +60,15 @@ const FileUpload: FC = () => {
           }));
         },
       });
-      setFilePaths((prevFilePaths) => [
-        ...prevFilePaths,
+      setRemoteFilePaths((prevRemoteFilePaths) => [
+        ...prevRemoteFilePaths,
         response.data.filePath,
       ]);
       setShowViewDocs(true);
+      setUploadedFileNames((alreadyUploadedFileNames) => [
+        ...alreadyUploadedFileNames,
+        file.name,
+      ]);
     } catch (error) {
       setUploadPercentage((prevUploadPercentage) => ({
         ...prevUploadPercentage,
@@ -79,7 +84,10 @@ const FileUpload: FC = () => {
   };
 
   const uploadFiles = async (filesList: FileList) => {
-    const files: File[] = Array.from(filesList);
+    const files: File[] = Array.from(filesList).filter(
+      (file) => !uploadedFileNames.includes(file.name)
+    );
+
     try {
       const uploadPromises = files.map(async (file) => uploadOneFile(file));
       await Promise.all(uploadPromises);
@@ -92,13 +100,15 @@ const FileUpload: FC = () => {
   };
 
   async function deleteFiles() {
-    const fileNames = filePaths.join(",");
+    if (remoteFilePaths.length === 0) return;
+    const fileNames = remoteFilePaths.join(",");
     try {
       const response = await axiosInstance.delete(
         `/delete?fileNames=${fileNames}`
       );
       setUploadPercentage({});
-      setFilePaths([]);
+      setRemoteFilePaths([]);
+      setUploadedFileNames([]);
       setMessage(response.data.message);
       setAlertType("success");
       setShowViewDocs(false);
@@ -163,7 +173,7 @@ const FileUpload: FC = () => {
             View Docs
           </button>
         )}
-        {showViewDocs && (
+        {remoteFilePaths.length > 0 && (
           <button
             type="button"
             className="btn btn-primary"
