@@ -2,6 +2,7 @@ import { type FC } from "react";
 import { useState, useEffect } from "react";
 import Progress from "./Progress";
 import Message from "./Message";
+import DocsViewer from "./DocViewer";
 import { niceBytes, mimeTypeToString } from "../utils/file";
 import axiosInstance from "../utils/axios";
 import axios from "axios";
@@ -64,7 +65,6 @@ const FileUpload: FC = () => {
         ...prevRemoteFilePaths,
         response.data.filePath,
       ]);
-      setShowViewDocs(true);
       setUploadedFileNames((alreadyUploadedFileNames) => [
         ...alreadyUploadedFileNames,
         file.name,
@@ -131,10 +131,8 @@ const FileUpload: FC = () => {
           )}) Exceeds the ${niceBytes(allowedTotalSize)} Limit`
         );
         setAlertType("danger");
-        if (filePaths.length > 0) setShowUploadInfo(true);
         return;
       }
-      setShowUploadInfo(true);
       await uploadFiles(files);
     }
   };
@@ -156,20 +154,28 @@ const FileUpload: FC = () => {
         type="file"
         multiple
         onChange={onChange}
-        accept={Object.keys(supportedFileType).join(", ")}
+        accept={Object.keys(supportedFileType).join(",")}
       />
       <div className="d-flex justify-content-center gap-3">
         <label
           htmlFor="upload-files"
           className="btn btn-primary"
           onClick={() => {
-            setShowUploadInfo(false);
+            setShowUploadInfo(true);
+            setShowViewDocs(false);
           }}
         >
           Browse Files
         </label>
-        {showViewDocs && (
-          <button type="button" className="btn btn-primary">
+        {remoteFilePaths.length > 0 && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => {
+              setShowViewDocs(true);
+              setShowUploadInfo(false);
+            }}
+          >
             View Docs
           </button>
         )}
@@ -198,6 +204,7 @@ const FileUpload: FC = () => {
           )}
         </div>
       )}
+      {showViewDocs && <DocsViewer docSrcs={remoteFilePaths} />}
     </div>
   );
 };

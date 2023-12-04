@@ -32,6 +32,17 @@ const exceedDirSizeLimit = (fileIncoming, dirToCheck) => {
   return totalSize > uploadDirLimit;
 };
 
+app.get("/upload/:filename", (req, res) => {
+  const fileName = req.params.filename;
+
+  if (!fileName) {
+    return res.status(400).send("File name is missing.");
+  }
+
+  const absolutePath = path.join(__dirname, "upload", fileName);
+  res.sendFile(absolutePath);
+});
+
 app.post("/upload", (req, res) => {
   if (!req.files || !req.files.file) {
     return res.status(400).json({
