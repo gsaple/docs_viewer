@@ -7,6 +7,30 @@ import { niceBytes, mimeTypeToString } from "../utils/file";
 import axiosInstance from "../utils/axios";
 import axios from "axios";
 
+const supportedFileType: { [key: string]: string } = {
+  "image/bmp": "bmp",
+  "text/csv": "csv",
+  "application/msword": "doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    "docx",
+  "image/gif": "gif",
+  "text/htm": "htm",
+  "text/html": "html",
+  "image/jpeg": "jpeg",
+  "image/jpg": "jpg",
+  "video/mp4": "mp4",
+  "application/vnd.oasis.opendocument.text": "odt",
+  "application/pdf": "pdf",
+  "image/png": "png",
+  "application/vnd.ms-powerpoint": "ppt",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+    "pptx",
+  "image/tiff": "tiff",
+  "text/plain": "txt",
+  "application/vnd.ms-excel": "xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+};
+
 const FileUpload: FC = () => {
   const allowedTotalSize = 50 * 1024 * 1024; // 50 Mb
   const [message, setMessage] = useState<string>("");
@@ -18,29 +42,6 @@ const FileUpload: FC = () => {
   }>({});
   const [remoteFilePaths, setRemoteFilePaths] = useState<string[]>([]);
   const [uploadedFileNames, setUploadedFileNames] = useState<string[]>([]);
-  const supportedFileType: { [key: string]: string } = {
-    "image/bmp": "bmp",
-    "text/csv": "csv",
-    "application/msword": "doc",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-      "docx",
-    "image/gif": "gif",
-    "text/htm": "htm",
-    "text/html": "html",
-    "image/jpeg": "jpeg",
-    "image/jpg": "jpg",
-    "video/mp4": "mp4",
-    "application/vnd.oasis.opendocument.text": "odt",
-    "application/pdf": "pdf",
-    "image/png": "png",
-    "application/vnd.ms-powerpoint": "ppt",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation":
-      "pptx",
-    "image/tiff": "tiff",
-    "text/plain": "txt",
-    "application/vnd.ms-excel": "xls",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
-  };
 
   useEffect(() => {
     window.addEventListener("beforeunload", deleteFiles);
@@ -159,7 +160,10 @@ const FileUpload: FC = () => {
         type="file"
         multiple
         onChange={onChange}
-        accept={Object.keys(supportedFileType).join(",")}
+        accept={[
+          Object.keys(supportedFileType),
+          Object.values(supportedFileType).map((type) => "." + type),
+        ].join(",")}
       />
       <div className="d-flex justify-content-center gap-3">
         <label
