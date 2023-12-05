@@ -40,15 +40,17 @@ const FileUpload: FC = () => {
   const [uploadPercentage, setUploadPercentage] = useState<{
     [key: string]: number;
   }>({});
-  const [remoteFilePaths, setRemoteFilePaths] = useState<string[]>([]);
-  const [uploadedFileNames, setUploadedFileNames] = useState<string[]>([]);
+
+  const [filePaths, setFilePaths] = useState<{
+    [key: string]: string;
+  }>({});
 
   useEffect(() => {
     window.addEventListener("beforeunload", deleteFiles);
     return () => {
       window.removeEventListener("beforeunload", deleteFiles);
     };
-  }, [remoteFilePaths]);
+  }, [filePaths]);
 
   const updateMessage = (msg: string, status: string) => {
     setMessage(msg);
@@ -57,6 +59,8 @@ const FileUpload: FC = () => {
       setTimeout(() => setMessage(""), 5000);
     }
   };
+
+  const isFilePathsEmpty = () => Object.keys(filePaths).length === 0;
 
   const uploadOneFile = async (file: File) => {
     const formData = new FormData();
@@ -70,14 +74,10 @@ const FileUpload: FC = () => {
           }));
         },
       });
-      setRemoteFilePaths((prevRemoteFilePaths) => [
-        ...prevRemoteFilePaths,
-        response.data.filePath,
-      ]);
-      setUploadedFileNames((alreadyUploadedFileNames) => [
-        ...alreadyUploadedFileNames,
-        file.name,
-      ]);
+      setFilePaths((prevFilePaths) => ({
+        ...prevFilePaths,
+        [file.name]: response.data.filePath,
+      }));
     } catch (error) {
       setUploadPercentage((prevUploadPercentage) => ({
         ...prevUploadPercentage,
@@ -94,7 +94,7 @@ const FileUpload: FC = () => {
 
   const uploadFiles = async (filesList: FileList) => {
     const files: File[] = Array.from(filesList).filter(
-      (file) => !uploadedFileNames.includes(file.name)
+      (file) => !Object.keys(filePaths).includes(file.name)
     );
 
     try {
@@ -107,15 +107,13 @@ const FileUpload: FC = () => {
   };
 
   async function deleteFiles() {
-    if (remoteFilePaths.length === 0) return;
-    const fileNames = remoteFilePaths.join(",");
+    if (isFilePathsEmpty()) return;
     try {
       const response = await axiosInstance.delete(
-        `/delete?fileNames=${fileNames}`
+        `/delete?fileNames=${Object.values(filePaths).join(",")}`
       );
       setUploadPercentage({});
-      setRemoteFilePaths([]);
-      setUploadedFileNames([]);
+      setFilePaths({});
       updateMessage(response.data.message, "success");
       setShowViewDocs(false);
     } catch (error) {
@@ -176,7 +174,7 @@ const FileUpload: FC = () => {
         >
           Browse Files
         </label>
-        {remoteFilePaths.length > 0 && (
+        {!isFilePathsEmpty() && (
           <button
             type="button"
             className="btn btn-primary"
@@ -188,7 +186,7 @@ const FileUpload: FC = () => {
             View Docs
           </button>
         )}
-        {remoteFilePaths.length > 0 && (
+        {!isFilePathsEmpty() && (
           <button
             type="button"
             className="btn btn-primary"
@@ -213,7 +211,7 @@ const FileUpload: FC = () => {
           )}
         </div>
       )}
-      {showViewDocs && <DocsViewer docSrcs={remoteFilePaths} />}
+      {showViewDocs && <DocsViewer docSrcs={{ ...filePaths }} />}
     </div>
   );
 };
