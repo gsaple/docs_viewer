@@ -163,7 +163,7 @@ const FileUpload: FC = () => {
           Object.values(supportedFileType).map((type) => "." + type),
         ].join(",")}
       />
-      <div className="d-flex justify-content-center gap-3">
+      <div className="d-flex justify-content-center gap-3 mb-4">
         <label
           htmlFor="upload-files"
           className="btn btn-primary"

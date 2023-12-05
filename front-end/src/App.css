@@ -10,3 +10,25 @@
   text-overflow: ellipsis;
   max-width: 200px;
 }
+
+#proxy-renderer {
+  min-height: 500px;
+  max-height: 500px;
+}
+
+#pdf-download,
+#pdf-zoom-out,
+#pdf-zoom-in,
+#pdf-zoom-reset,
+#pdf-toggle-pagination {
+  display: none;
+}
+
+#doc-nav-info {
+  margin-bottom: 0;
+}
+
+#file-name {
+  font-weight: unset;
+  color: #6C757D;
+}
