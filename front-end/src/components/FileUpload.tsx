@@ -49,6 +49,14 @@ const FileUpload: FC = () => {
     };
   }, [remoteFilePaths]);
 
+  const updateMessage = (msg: string, status: string) => {
+    setMessage(msg);
+    setAlertType(status);
+    if (status === "success") {
+      setTimeout(() => setMessage(""), 5000);
+    }
+  };
+
   const uploadOneFile = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -91,11 +99,9 @@ const FileUpload: FC = () => {
     try {
       const uploadPromises = files.map(async (file) => uploadOneFile(file));
       await Promise.all(uploadPromises);
-      setMessage("All files uploaded successfully");
-      setAlertType("success");
+      updateMessage("All files uploaded successfully", "success");
     } catch (error) {
-      setMessage((error as Error).message);
-      setAlertType("danger");
+      updateMessage((error as Error).message, "danger");
     }
   };
 
@@ -109,8 +115,7 @@ const FileUpload: FC = () => {
       setUploadPercentage({});
       setRemoteFilePaths([]);
       setUploadedFileNames([]);
-      setMessage(response.data.message);
-      setAlertType("success");
+      updateMessage(response.data.message, "success");
       setShowViewDocs(false);
     } catch (error) {
       console.error("Error deleting files:", (error as Error).message);
@@ -125,12 +130,12 @@ const FileUpload: FC = () => {
         uploadedSize += file.size;
       }
       if (uploadedSize > allowedTotalSize) {
-        setMessage(
+        updateMessage(
           `Selected File(s) Size (${niceBytes(
             uploadedSize
-          )}) Exceeds the ${niceBytes(allowedTotalSize)} Limit`
+          )}) Exceeds the ${niceBytes(allowedTotalSize)} Limit`,
+          "danger"
         );
-        setAlertType("danger");
         return;
       }
       await uploadFiles(files);
