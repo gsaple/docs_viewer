@@ -30,5 +30,9 @@
 
 #file-name {
   font-weight: unset;
-  color: #6C757D;
+  color: #6c757d;
+}
+
+#loading {
+  height: 100vh;
 }

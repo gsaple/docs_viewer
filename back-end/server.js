@@ -32,11 +32,17 @@ const exceedDirSizeLimit = (fileIncoming, dirToCheck) => {
   return totalSize > uploadDirLimit;
 };
 
+app.get("/wake-up-server", (req, res) => {
+  return res.status(200).json({ serverIsOn: true });
+});
+
 app.get("/upload/:filename", (req, res) => {
   const fileName = req.params.filename;
 
   if (!fileName) {
-    return res.status(400).send("File name is missing.");
+    return res
+      .status(400)
+      .json({ success: false, error: "File name is missing." });
   }
 
   const absolutePath = path.join(__dirname, "upload", fileName);
