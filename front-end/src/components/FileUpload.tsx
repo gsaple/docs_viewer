@@ -37,6 +37,8 @@ const FileUpload: FC = () => {
   const [alertType, setAlertType] = useState<string>("success");
   const [showUploadInfo, setShowUploadInfo] = useState<boolean>(false);
   const [showViewDocs, setShowViewDocs] = useState<boolean>(false);
+  const [showDocs, setShowDocs] = useState<boolean>(false);
+  const [uploadDocsAllowed, setUploadDocsAllowed] = useState<boolean>(true);
   const [uploadPercentage, setUploadPercentage] = useState<{
     [key: string]: number;
   }>({});
@@ -59,8 +61,6 @@ const FileUpload: FC = () => {
       setTimeout(() => setMessage(""), 5000);
     }
   };
-
-  const isFilePathsEmpty = () => Object.keys(filePaths).length === 0;
 
   const uploadOneFile = async (file: File) => {
     const formData = new FormData();
@@ -107,7 +107,7 @@ const FileUpload: FC = () => {
   };
 
   async function deleteFiles() {
-    if (isFilePathsEmpty()) return;
+    if (Object.keys(filePaths).length === 0) return;
     try {
       const response = await axiosInstance.delete(
         `/delete?fileNames=${Object.values(filePaths).join(",")}`
@@ -115,6 +115,7 @@ const FileUpload: FC = () => {
       setUploadPercentage({});
       setFilePaths({});
       updateMessage(response.data.message, "success");
+      setShowDocs(false);
       setShowViewDocs(false);
     } catch (error) {
       console.error("Error deleting files:", (error as Error).message);
@@ -137,7 +138,11 @@ const FileUpload: FC = () => {
         );
         return;
       }
+      setUploadDocsAllowed(false);
+      setShowViewDocs(false);
       await uploadFiles(files);
+      setUploadDocsAllowed(true);
+      setShowViewDocs(true);
     }
   };
 
@@ -162,31 +167,32 @@ const FileUpload: FC = () => {
           Object.keys(supportedFileType),
           Object.values(supportedFileType).map((type) => "." + type),
         ].join(",")}
+        disabled={!uploadDocsAllowed}
       />
       <div className="d-flex justify-content-center gap-3 mb-4">
         <label
           htmlFor="upload-files"
-          className="btn btn-primary"
+          className={`btn btn-${uploadDocsAllowed ? "primary" : "secondary"}`}
           onClick={() => {
             setShowUploadInfo(true);
-            setShowViewDocs(false);
+            setShowDocs(false);
           }}
         >
           Browse Files
         </label>
-        {!isFilePathsEmpty() && (
+        {showViewDocs && (
           <button
             type="button"
             className="btn btn-primary"
             onClick={() => {
-              setShowViewDocs(true);
+              setShowDocs(true);
               setShowUploadInfo(false);
             }}
           >
             View Docs
           </button>
         )}
-        {!isFilePathsEmpty() && (
+        {showViewDocs && (
           <button
             type="button"
             className="btn btn-primary"
@@ -211,7 +217,7 @@ const FileUpload: FC = () => {
           )}
         </div>
       )}
-      {showViewDocs && <DocsViewer docSrcs={{ ...filePaths }} />}
+      {showDocs && <DocsViewer docSrcs={{ ...filePaths }} />}
     </div>
   );
 };
