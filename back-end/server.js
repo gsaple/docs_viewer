@@ -9,18 +9,6 @@ const app = express();
 app.use(cors());
 app.use(fileUpload());
 
-app.use((err, req, res, next) => {
-  if (err) {
-    return res
-      .status(500)
-      .json({ success: false, error: `Server Error: ${err.message}` });
-  }
-
-  return res
-    .status(500)
-    .json({ success: false, error: "Unknown Server Error" });
-});
-
 const exceedDirSizeLimit = (fileIncoming, dirToCheck) => {
   const uploadDirLimit = 50 * 1024 * 1024; // 50 Mb
   const files = fs.readdirSync(dirToCheck);
